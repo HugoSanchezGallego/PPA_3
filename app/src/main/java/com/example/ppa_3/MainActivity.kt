@@ -1,5 +1,6 @@
 package com.example.ppa_3
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,11 +23,15 @@ class MainActivity : AppCompatActivity() {
                 Farmacia(
                     title = feature.properties.title,
                     telefono = telefono,
-                    coordinates = feature.geometry.coordinates
+                    description = feature.properties.description
                 )
             }
 
-            val adapter = FarmaciaAdapter(farmacias)
+            val adapter = FarmaciaAdapter(farmacias) { farmacia ->
+                val intent = Intent(this, MapActivity::class.java)
+                intent.putExtra("description", farmacia.description)
+                startActivity(intent)
+            }
             recyclerView.adapter = adapter
         }
     }
