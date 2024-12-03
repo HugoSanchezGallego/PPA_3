@@ -14,10 +14,11 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val farmacias = fetchFarmacias().map { feature ->
+        val farmacias = fetchFarmacias(this).map { feature ->
+            val telefono = feature.properties.description.split("Teléfono: ").getOrNull(1)?.split(" ")?.getOrNull(0) ?: "N/A"
             Farmacia(
                 title = feature.properties.title,
-                telefono = feature.properties.description.split("Teléfono: ")[1].split(" ")[0],
+                telefono = telefono,
                 coordinates = feature.geometry.coordinates
             )
         }
