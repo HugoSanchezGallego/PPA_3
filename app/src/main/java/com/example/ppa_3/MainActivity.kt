@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,16 +15,34 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val farmacias = fetchFarmacias(this).map { feature ->
-            val telefono = feature.properties.description.split("Teléfono: ").getOrNull(1)?.split(" ")?.getOrNull(0) ?: "N/A"
-            Farmacia(
-                title = feature.properties.title,
-                telefono = telefono,
-                coordinates = feature.geometry.coordinates
-            )
-        }
+        val db = FirebaseFirestore.getInstance()
+        clearFarmaciasCollection(db) {
+            val farmacias = fetchFarmacias(this).map { feature ->
+                val telefono = feature.properties.description.split("Teléfono: ").getOrNull(1)?.split(" ")?.getOrNull(0) ?: "N/A"
+                Farmacia(
+                    title = feature.properties.title,
+                    telefono = telefono,
+                    coordinates = feature.geometry.coordinates
+                )
+            }
 
-        val adapter = FarmaciaAdapter(farmacias)
-        recyclerView.adapter = adapter
+            val adapter = FarmaciaAdapter(farmacias)
+            recyclerView.adapter = adapter
+        }
+    }
+
+    private fun clearFarmaciasCollection(db: FirebaseFirestore, onComplete: () -> Unit) {
+        db.collection("farmacias")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    db.collection("farmacias").document(document.id).delete()
+                }
+                onComplete()
+            }
+            .addOnFailureListener { e ->
+                println("Error clearing collection: $e")
+                onComplete()
+            }
     }
 }
